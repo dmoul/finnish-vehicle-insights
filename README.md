@@ -20,11 +20,15 @@ The rendered output from the scripts in this repo is available at ***TBD***
 
 Thanks to the Finnish Ministry of Transportation and Communications (FINCOM) for making the data available.
 
-Photo on this page by John Lloyd[^readme-1]
+Photo on the introductory page by John Lloyd[^readme-1]
 
 [^readme-1]: Photo: <https://flickr.com/photos/hugo90/42693172685/> licensed CC BY 2.0 DEED
 
 Hat tip to Jeremy Signer-Vine for [Data Is Plural](https://www.data-is-plural.com), where I learned about FINCOM open data.
+
+## Licenses
+
+The text is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) meaning you can share and adapt its content as long as you provide attribution. The source code that generates the text is licensed under the MIT License.
 
 ## Replicating this analysis
 
