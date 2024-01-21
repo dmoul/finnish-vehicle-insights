@@ -1,0 +1,40 @@
+# Translated text
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+#| error: true
+
+source("./scripts/setup-libraries.R")
+source("./scripts/setup-data-inspection-failures.R")
+
+my_caption <- "Plot: Daniel Moul\nData: TRAFICOM tieto.traficom.fi, trafi2.stat.fi"
+
+```
+
+<br>
+
+## About translations
+
+In case anyone wishes to better understand my translations to English, I offer the original Finnish terms below, the English terms, and the English shorthand I used in @sec-failure-reasons Failure reasons. I used [deepl.com](https://deepl.com) then adjusted the translations using my American sensibilities.
+
+<br>
+
+```{r}
+#| label: tbl-reasons
+#| tbl-cap: "Translations from the Finnish, including shortened reasons to aid plotting"
+
+d_translations |>
+  rename(purpose = column_purpose) |>
+  filter(!is.na(purpose)) |>
+  left_join(
+    reasons_df,
+    join_by(English == reason)
+  ) |>
+  gt() |>
+  sub_missing()
+
+```
+
+<br>

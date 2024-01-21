@@ -1,0 +1,49 @@
+# Inspection data
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+#| error: true
+
+source("./scripts/setup-libraries.R")
+source("./scripts/setup-data-inspection-failures.R")
+
+my_caption <- "Plot: Daniel Moul\nData: TRAFICOM tieto.traficom.fi, trafi2.stat.fi"
+
+```
+
+<br>
+
+## All brands, models, model years and first, second and third most common failure reasons
+
+The following is the inspection data in the working set.
+
+```{r}
+#| label: tbl-failure-reasons
+#| tbl-cap: "Inspection failure data"
+##| column: screen-right
+
+data_for_table <- dta_working_set |>
+ filter(model_year %in% 2001:2023,
+        brand != "All brands",
+         model != "All models") |>
+  mutate(model_year = as.numeric(model_year)) |>
+  mutate(n_model_years = n_distinct(model_year),
+         .by = brand) |>
+  filter(n_model_years >= 3)
+
+data_for_table |>
+  arrange(brand, model, desc(model_year)) |>
+  group_by(brand, model) |>
+  select(brand, model, model_year, inspection_count, failure_rate, failure_reason_1,failure_reason_2, failure_reason_3 ) |>
+  gt()  |>
+  tab_options(table.font.size = 10) |>
+  sub_missing() |>
+  fmt_number(columns = failure_rate,
+              decimals = 2)
+
+
+```
+
+<br>

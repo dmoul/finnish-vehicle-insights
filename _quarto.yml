@@ -1,0 +1,43 @@
+project:
+  type: book
+  output-dir: "_finnish-vehicles"
+  
+book:
+  title: "What can we learn from Finnish passenger vehicle data?"
+  subtitle: "Inspection failures, power train data, and used vehicle imports"
+  author: "[Daniel Moul](https://dmoul.github.io)"
+  date: today
+  cover-image: "./image/helsinki-street-JOHN-LLOYD-cropped.jpg"
+  cover-image-alt: "Helsinki street scene with row houses and cars parked at the curb. Photo by John Lloyd. Licensed CC BY 2.0 DEED."
+  page-footer: 
+    center: "Copyright 2024 by [Daniel Moul](https://dmoul.github.io). License: [CC-BY 4.0](http://creativecommons.org/licenses/by/4.0/)"
+    background: dark
+  chapters:
+  - "index.qmd"
+  - "brands-models.qmd"
+  - "inspection-failures.qmd"
+  - "modeling-failure-rate.qmd"
+  - "failure-reasons.qmd"
+  - "power-train-mix.qmd"
+  - "used-vehicle-imports.qmd"
+  appendices:
+  - "appendix-notes-data.qmd"
+  - "appendix-inspection-data.qmd"
+  - "appendix-vehicle-power-mix.qmd"
+  - "appendix-translations.qmd"
+#  - "notes.qmd"
+  
+execute:
+  freeze: auto  # re-render only when source changes
+
+#bibliography: references.bib
+license: "CC BY"
+appendix-style: default
+
+format: 
+  html:
+    toc: true
+    number-sections: true
+    number-depth: 3
+    code-fold: true
+    code-summary: "Show the code"

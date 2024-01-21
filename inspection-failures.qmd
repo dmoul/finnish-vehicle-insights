@@ -1,0 +1,388 @@
+# Inspection failures
+
+```{r}
+#| label: setup
+#| include: false
+
+source("./scripts/setup-libraries.R")
+source("./scripts/setup-data-inspection-failures.R")
+
+library(tidytext) # for reorder_within() and scale_y_reordered()
+
+```
+
+Inspection failure rates in 2022 for (`model_year`, `brand`, `model`) vary from `r percent(min(dta_working_set$failure_rate))` to `r percent(max(dta_working_set$failure_rate))`:
+
+```{r}
+#| label: tbl-failure-rate-min-max
+#| tbl-cap: "Minimum and maximum falure rates considering all (model_year, brand, model)"
+
+dta_working_set |>
+  filter(failure_rate == min(failure_rate) | failure_rate == max(failure_rate)) |>
+  select(model_year, brand, model, inspection_count, failure_rate, failure_reason_1) |>
+  gt()
+
+```
+
+<br>
+
+Here I start using `vehicle_age` instead of `model_year`, because it's a more natural way of thinking about the association with failure rate.
+ 
+While there are strong correlations among model year, km driven (average or median), and failure rate (@fig-inspection-failures-all-brands-by-year and @tbl-failure-rate-correlations), keep in mind that differences among groups in `model_year` (also expressed as `vehicle_age`) and `median_km_driven` mean that summary statistics and rankings may be misleading. See @sec-modeling-failure-rate Modeling failure rate.
+
+```{r, fig.height=6, fig.width=8}
+#| label: fig-inspection-failures-all-brands-by-year
+#| fig-cap: "Four views of inspection failure data (all brand summary)"
+#| fig-height: 6
+#| fig-width: 8
+#| column: page-right
+
+data_for_plot <- dta_working_set
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  pivot_longer(cols = inspection_count:median_km_driven,
+               names_to = "variable",
+               values_to = "value") |>
+  mutate(variable = fct_relevel(variable, c("average_km_driven", "median_km_driven",
+                                           "failure_rate", "inspection_count"))) |>
+  ggplot() +
+  geom_jitter(aes(vehicle_age, value),
+             size = 0.25, alpha = 0.25, na.rm = TRUE) +
+  geom_smooth(aes(vehicle_age, value),
+              method = "loess", formula = 'y ~ x',
+              na.rm = TRUE
+              ) +
+  scale_y_continuous(labels = label_number(scale_cut = cut_short_scale()),
+                     expand = expansion(mult = c(0, 0.05))) +
+  expand_limits(y = 0) +
+  facet_wrap(~ variable, scales = "free_y") +
+  labs(
+    title = "Four views (all brand summary)",
+    subtitle = glue("Y axis varies; model years {model_year_range}"),
+    x = "Vehicle age",
+    y = NULL,
+    caption = my_caption
+  )
+
+```
+
+<br>
+
+```{r}
+#| label: tbl-failure-rate-correlations
+#| tbl-cap: "High correlations"
+
+dta_working_set |>
+  select(vehicle_age, median_km_driven, average_km_driven, failure_rate) |>
+  cor() |>
+  as.data.frame() |>
+  rownames_to_column(var = "variables") |>
+  gt() |>
+  tab_header(md("**Correlations**")) |>
+  fmt_number(decimals = 3) |>
+  tab_source_note(md("*cor(vehicle_age, median_km_driven, average_km_driven, failure_rate)*"))
+```
+
+<br>
+
+This is generally true at the brand level as well (@fig-inspection-failures-all-models-by-year).
+
+***TODO: Fix sawtooth below***
+
+```{r, fig.height=6, fig.width=8}
+#| label: fig-inspection-failures-all-models-by-year
+#| fig-cap: "Four views of inspection failure data (brands)"
+#| fig-height: 6
+#| fig-width: 8
+#| column: page-right
+
+data_for_plot <- all_models_yearly |>
+  mutate(model_year = as.numeric(model_year),
+         vehicle_age = 2022 - model_year) |>
+  filter(brand != "All brands") |>
+  complete(model_year, brand,
+           fill = list(inspection_count = 0, model = "All models")
+  )
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  pivot_longer(cols = inspection_count:median_km_driven,
+               names_to = "variable",
+               values_to = "value") |>
+  mutate(variable = fct_relevel(variable, c("average_km_driven", "median_km_driven",
+                                           "failure_rate", "inspection_count"))) |>
+  ggplot() +
+  geom_line(aes(vehicle_age, value, group = brand),
+            linewidth = 0.25, alpha = 0.4,
+            na.rm = TRUE, show.legend = FALSE) +
+  scale_y_continuous(labels = label_number(scale_cut = cut_short_scale()),
+                     expand = expansion(mult = c(0, 0.05))) +
+  expand_limits(y = 0) +
+  facet_wrap(~ variable, scales = "free_y") +
+  labs(
+    title = "Brands generally follow summary trends",
+    subtitle = glue("Y axis varies; model years {model_year_range}"),
+    x = "Vehicle age",
+    y = NULL,
+    caption = my_caption
+  )
+```
+
+<br>
+
+The most linear relationship is failure rate by vehicle age (@fig-inspection-failure-pct-by-median-km panel B), which helps to explain the difference between the corresponding simple linear models (@tbl-simple-models-compared).
+
+```{r, fig.height=6, fig.width=15}
+#| label: fig-inspection-failure-pct-by-median-km
+#| fig-cap: "Inspection failure rates by distance driven and vehicle age"
+#| fig-height: 6
+#| fig-width: 15
+#| column: page-right
+
+data_for_plot <- dta_working_set |>
+  mutate(median_km_driven_k = median_km_driven / 1000)
+
+p1 <- data_for_plot |>
+  ggplot(aes(median_km_driven, failure_rate)) +
+  geom_point(aes(color = model_year),
+            na.rm = TRUE, alpha = 0.4) +
+  geom_smooth(data = data_for_plot |>
+                filter(median_km_driven < 300000),
+              aes(median_km_driven, failure_rate),
+              method = 'loess', formula = 'y ~ x',
+              se = FALSE, linewidth = 1.75, color = "white") +
+  geom_smooth(data = data_for_plot |>
+                filter(median_km_driven < 300000),
+              aes(median_km_driven, failure_rate),
+              method = 'loess', formula = 'y ~ x',
+              se = FALSE, linewidth = 1, color = "blue") +
+  scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  scale_color_viridis_c(direction = 1) +
+  labs(
+    tag = "A"
+  )
+
+p2 <- data_for_plot |>
+  ggplot(aes(vehicle_age, failure_rate)) +
+  geom_jitter(aes(color = median_km_driven_k),
+            na.rm = TRUE, alpha = 0.4) +
+  geom_smooth(method = 'loess', formula = 'y ~ x',
+              se = FALSE, linewidth = 1.75, color = "white") +
+  geom_smooth(method = 'loess', formula = 'y ~ x',
+              se = FALSE, linewidth = 1, color = "blue") +
+  scale_color_viridis_c(direction = 1)  +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.05))) +
+  expand_limits(y = 0) +
+  labs(
+    tag = "B"
+  )
+
+p3 <- data_for_plot |>
+  ggplot(aes(vehicle_age, median_km_driven)) +
+  geom_jitter(aes(color = failure_rate),
+            na.rm = TRUE, alpha = 0.4) +
+  geom_smooth(method = 'loess', formula = 'y ~ x',
+              se = FALSE, linewidth = 1.75, color = "white") +
+  geom_smooth(method = 'loess', formula = 'y ~ x',
+              se = FALSE, linewidth = 1, color = "blue") +
+  scale_y_continuous(labels = label_number(scale_cut = cut_short_scale()),
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_color_viridis_c(direction = 1) +
+  expand_limits(y = 0) +
+  labs(
+    tag = "C"
+  )
+
+p1 + p2 + p3 +
+  plot_annotation(
+    title = "Vehicle inspection failures",
+    caption = my_caption
+  )
+
+
+```
+
+<br>
+
+Linear regression plots by brand reveal differences in the failure rates of the brands:
+
+* Points closer to zero on the Y axis indicate brands that are are more reliable at that particular distance driven.
+* Lines closer to zero on the Y axis indicate brands that are are more reliable at any distance driven
+* Lines with lower slope indicate brands that are more reliable as cars are driven farther.
+
+```{r, fig.height=12, fig.width=15}
+#| label: fig-inspection-failure-pct-by-median-km-each-brand
+#| fig-cap: "Inspection failures by distance driven faceted by brand"
+#| fig-height: 12
+#| fig-width: 15
+#| column: screen-right
+
+data_for_plot <- dta_working_set
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  ggplot() +
+  geom_point(aes(median_km_driven, failure_rate, group = brand, color = vehicle_age, size = inspection_count),
+             na.rm = TRUE, size = 0.5, alpha = 0.4,
+             show.legend = TRUE) +
+  geom_smooth(aes(median_km_driven, failure_rate, group = brand),
+              method = "lm", formula = 'y ~ x', se = FALSE, linewidth = 0.5,
+              show.legend = FALSE) +
+  scale_x_continuous(labels = label_number(scale_cut = cut_short_scale())) +
+  scale_color_viridis_c(end = 0.85,
+                        breaks = 3 * 1:5) + #c(4, 8, 12, 16)) +
+  scale_size_continuous(range = c(1, 10)) +
+  expand_limits(y = 0) +
+  facet_wrap(~ brand) +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Vehicle inspection failure percentage by median km driven",
+    subtitle = glue("All brands and models; model years {model_year_range}"),
+    x = "Median km driven",
+    y = "Failure rate",
+    caption = my_caption
+  )
+```
+
+<br>
+
+Considering *vehicles of each model year as a group*, what was the failure rate for each brand? The same brands are not in the top or bottom five each year although some brands do appear often (@fig-boxplot-failure-rate-by-model-year-each-brand).
+
+```{r, fig.height=12, fig.width=15}
+#| label: fig-boxplot-failure-rate-by-model-year-each-brand
+#| fig-cap: "Ranked brands by failure rate boxplot faceted by model year"
+#| fig-height: 12
+#| fig-width: 15
+#| column: screen-right
+
+data_for_plot <- dta_working_set
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  mutate(brand = reorder_within(brand, -failure_rate, model_year)) |>
+  ggplot(aes(failure_rate, brand, group = brand, color = brand)) +
+  geom_boxplot(varwidth = TRUE,
+             na.rm = TRUE,
+             show.legend = FALSE) +
+  scale_y_reordered() +
+  expand_limits(y = 0) +
+  facet_wrap(~ model_year,scales = "free_y") +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Ranked brands by failure rate for each model year",
+    subtitle = glue("All brands and models; model years {model_year_range}"),
+    x = "Failure rate",
+    y = NULL,
+    caption = my_caption
+  )
+```
+
+<br>
+
+Considering *vehicles of each brand over all years*, what are the brands' failure rate trends (@fig-boxplot-failure-rate-by-brand-each-model-year)?
+
+```{r, fig.height=12, fig.width=15}
+#| label: fig-boxplot-failure-rate-by-brand-each-model-year
+#| fig-cap: "Failure rate boxplot by model year for each brand"
+#| fig-height: 12
+#| fig-width: 15
+#| column: screen-right
+
+data_for_plot <- dta_working_set
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  ggplot(aes(vehicle_age, failure_rate, color = model_year, group = model_year)) +
+  geom_boxplot(varwidth = TRUE,
+               outlier.size = 0.5,
+             na.rm = TRUE,
+             show.legend = FALSE) +
+  scale_color_viridis_c(end = 0.85) +
+  facet_wrap(~ brand) + 
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Ranked brands by failure rate for each model year",
+    subtitle = glue("All brands and models with at least 3 model years; model years {model_year_range}"),
+    x = "Vehicle age",
+    y = "Failure rate",
+    caption = my_caption
+  )
+
+```
+
+<br>
+
+Failure rates vary to a surprising amount within most brands when plotted against model year (@fig-models-per-brand-each-each-model-year).
+
+```{r, fig.height=12, fig.width=15}
+#| label: fig-models-per-brand-each-each-model-year
+#| fig-cap: "Failure rates for each model by model year faceted by brand"
+#| fig-height: 12
+#| fig-width: 15
+#| column: screen-right
+
+data_for_plot <- dta_working_set
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  ggplot(aes(vehicle_age, failure_rate, color = model, group = model)) +
+  geom_point(size = 0.5, alpha = 0.4,
+             show.legend = FALSE) +
+  geom_smooth(method = "lm", formula = 'y ~ x', se = FALSE, linewidth = 0.5,
+              show.legend = FALSE) +
+  facet_wrap( ~ brand) +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Vehicle inspection failure percentage by model_year for each model (in 2022 inspection data)",
+    subtitle = glue("All brands and models with at least 3 model years; model years {model_year_range}"),
+    x = "Vehicle age",
+    y = "Failure rate",
+    caption = my_caption
+  )
+```
+
+<br>
+
+The differences in @fig-models-per-brand-each-each-model-year within brands are due in part to some models being driven more than others. The differences within brands (while still noticeable) are not as large when plotted against distance driven (@fig-models-per-brand-each-by-km-driven).
+
+```{r, fig.height=12, fig.width=15}
+#| label: fig-models-per-brand-each-by-km-driven
+#| fig-cap: "Failure rates for each model by distance driven faceted by brand"
+#| fig-height: 12
+#| fig-width: 15
+#| column: screen-right
+
+data_for_plot <- dta_working_set  |>
+  mutate(median_km_driven_k = median_km_driven / 1000)
+
+my_breaks <- seq(from = 0, to = max(data_for_plot$median_km_driven_k), by = 100)
+
+model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
+
+data_for_plot |>
+  ggplot(aes(median_km_driven_k, failure_rate, color = model, group = model)) +
+  geom_point(size = 0.5, alpha = 0.4,
+             show.legend = FALSE) +
+  geom_smooth(method = "lm", formula = 'y ~ x', se = FALSE, linewidth = 0.5,
+              show.legend = FALSE) +
+  scale_x_continuous(breaks = my_breaks) +
+  facet_wrap( ~ brand) +
+  theme(legend.position = "bottom") +
+  labs(
+    title = "Vehicle inspection failure percentage by model_year by median km driven",
+    subtitle = glue("All brands and models with at least 3 model years; model years {model_year_range}"),
+    x = "Median km driven (K)",
+    y = "Failure rate",
+    caption = my_caption
+  )
+```
+
+<br>

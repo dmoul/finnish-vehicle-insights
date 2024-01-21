@@ -1,0 +1,31 @@
+# Introduction {.unnumbered}
+
+Finland, a small country of about 5.6M in 2023^[[*Finland in Figures 2023 – key figures about us*](https://tilastokeskus.fi/uutinen/finland-in-figures-2023-key-figures-about-us) Statistics Finland. Published 2023-06-01 and retrieved 2024-01-03], offers a convenient window into larger trends in passenger vehicles. Using three data sets I downloaded from the Finnish Ministry of Transportation and Communications (FINCOM) I explore the following questions:
+
+* Looking at passenger vehicle inspection data from 2022: Which brands are most reliable? Least reliable? What are the most common reasons for inspection failure by vehicle brand, and how does this change as vehicles age? What is the relationship between driving distance and inspection failure? What are the brands' market share, and how has this changed over the years (since the mix of vehicles for a model year approximately indicate the purchase decisions in that year)?
+
+* Looking at a snapshot of passenger vehicles in traffic on 2023-09-30: What is the mix of power trains? By brand? How has this mix changed over the years? Which brands have been most successful in the transition to electrification, and has this transition opened a space for new market entrants? If so, which ones?
+
+* Looking at used car imports 2014-2023: How many vehicles imported? How old are most vehicles when they are imported? Which brands are most commonly imported. How do imports compare with the full set of passenger vehicles in Finland?
+
+These data sets provide one set of answers--certainly not the last word--in answering these questions. If we assume the Finnish passenger vehicle market is a geographically-defined sample generally representative of the larger European car market, or even more generally, somewhat representative of world-wide trends, we can extrapolate from these findings (at least in broad terms, since country-level, region- and continent-level differences are not visible).
+
+## Acknowledgements
+
+Thanks to the Finnish Ministry of Transportation and Communications (FINCOM) for making the data available.
+
+Photo on this page by John Lloyd^[Photo: <https://flickr.com/photos/hugo90/42693172685/> licensed CC BY 2.0 DEED]
+
+Hat tip to Jeremy Signer-Vine for [Data Is Plural](https://www.data-is-plural.com), where I learned about FINCOM open data.
+
+## Disclaimers
+
+These data sets come entirely from a single governmental agency. I cannot verify their accuracy. There seems to be inspection data missing for 2013, 2014, 2016, and 2019 (@fig-inspections-all-brands-by-year) however failure rates seem to be unaffected (@fig-inspection-failures-all-brands-by-year). There may be other errors or omissions in the source data or in my analysis of it. The processes of data generation, storage, retrieval, and publishing might have introduced biases that are not obvious in the data.
+
+Observations and inferences are my own. A professional analysis of market share would include other sources. This is not meant to provide advice, recommendations, or predictions of future vehicle reliability. Do your own homework before purchasing a vehicle. Consult sources you trust.
+
+## Licenses
+
+This text is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) meaning you can share and adapt its content as long as you provide attribution. The source code that generated this text is licensed under the MIT License. 
+
+<br>

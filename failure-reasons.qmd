@@ -1,0 +1,341 @@
+# Failure reasons {#sec-failure-reasons}
+
+```{r}
+#| label: setup
+#| include: false
+
+source("./scripts/setup-libraries.R")
+source("./scripts/setup-data-inspection-failures.R")
+
+library(tidytext) # for reorder_within() and scale_y_reordered()
+library(ggbump)
+
+```
+
+The data set includes the most common reasons that inspections failed for most (`model_year`, `brand`, `model`). Some (`model_year`, `brand`, `model`) include the second-most and third-most common reasons. To be included as a first, second or third most common reason, it must have been recorded for at least 10% of the vehicles in that (`model_year`, `brand`, `model`).
+
+## Most common reasons
+
+```{r}
+dta_reason_1_overall <- dta_working_set |>
+  count(failure_reason_1, sort = TRUE, name = "n_failures") |>
+  mutate(rank = row_number()) |>
+  left_join(reasons_df,
+            join_by(failure_reason_1 == reason)) |>
+  mutate(reason = coalesce(reason_short, failure_reason_1)) |>
+  select(reason, n_failures, rank)
+
+dta_reason_1_overall_yearly <- dta_working_set |>
+  mutate(vehicle_age = 2022 - model_year) |>
+  summarize(n_failures = n(),
+            .by = c(vehicle_age, failure_reason_1)
+            ) |>
+  arrange(vehicle_age, desc(n_failures)) |>
+  mutate(rank = row_number(),
+         .by = vehicle_age
+         ) |>
+  left_join(reasons_df,
+            join_by(failure_reason_1 == reason)) |>
+  mutate(reason = coalesce(reason_short, failure_reason_1)) |>
+  select(vehicle_age, reason, n_failures, rank)
+
+dta_reason_1_overall_weighted <- dta_working_set |>
+  mutate(n_failures = round(inspection_count * failure_rate)) |>
+  count(failure_reason_1, sort = TRUE, wt = n_failures, name = "n_failures") |>
+  mutate(rank = row_number()) |>
+  left_join(reasons_df,
+            join_by(failure_reason_1 == reason)) |>
+  mutate(reason = coalesce(reason_short, failure_reason_1)) |>
+  select(reason, n_failures, rank)
+  
+dta_reason_1_overall_yearly_weighted <- dta_working_set |>
+  mutate(vehicle_age = 2022 - model_year,
+         n_failures = round(inspection_count * failure_rate)) |>
+  count(vehicle_age, failure_reason_1, wt = n_failures, name = "n_failures") |>
+  arrange(vehicle_age, desc(n_failures)) |>
+  mutate(rank = row_number(),
+         .by = vehicle_age
+         ) |>
+  left_join(reasons_df,
+            join_by(failure_reason_1 == reason)) |>
+  mutate(reason = coalesce(reason_short, failure_reason_1)) |>
+  select(vehicle_age, reason, n_failures, rank)
+
+dta_reasons_all_weighted <- dta_working_set  |>
+  pivot_longer(cols = starts_with("failure_reason"),
+               names_to = "failure_number",
+               values_to = "reason") |>
+  filter(reason != "All model years") |> # found in failure_reason_2; not helpful
+  left_join(reasons_df,
+            join_by(reason == reason)) |>
+  mutate(reason = coalesce(reason_short, reason)) |>
+  mutate(failure_rate_weight = case_match(
+    failure_number,
+    "failure_reason_1" ~ 1.0,
+    "failure_reason_2" ~ 0.35,
+    "failure_reason_3" ~ 0.15),
+    n_failures = round(failure_rate_weight * inspection_count * failure_rate)
+  ) |>
+  #count(reason, sort = TRUE, wt = n_failures) |>
+  summarize(n_failures = sum(n_failures),
+            .by = reason) |>
+  arrange(desc(n_failures)) |>
+  mutate(rank = row_number())
+
+dta_reasons_all_yearly_weighted <- dta_working_set |>
+  pivot_longer(cols = starts_with("failure_reason"),
+               names_to = "failure_number",
+               values_to = "reason") |>
+  filter(reason != "All model years") |> # found in failure_reason_2; not helpful
+   left_join(reasons_df,
+            join_by(reason == reason)) |>
+  mutate(reason = coalesce(reason_short, reason)) |>
+  mutate(vehicle_age = 2022 - model_year,
+         failure_rate_weight = case_match(
+           failure_number,
+           "failure_reason_1" ~ 1.0,
+           "failure_reason_2" ~ 0.35,
+           "failure_reason_3" ~ 0.15),
+         n_failures = round(failure_rate_weight * inspection_count * failure_rate)
+  ) |>
+  count(vehicle_age, reason, sort = TRUE, wt = n_failures, name = "n_failures") |>
+  mutate(rank = row_number(),
+         .by = vehicle_age
+  )
+
+```
+
+Below I rank reasons by the number of inspection failures reported having this reason in two ways: (a) considering only the most common reason for each (`model_year`, `brand`, `model`); and (b) also including second- and third-most common reasons when they are available. I estimated the rate of second and third-most common reasons (see [@sec-all-reasons]). The two rankings are quite similar.
+
+```{r}
+#| label: tbl-reasons-overall
+#| tbl-cap: "Reasons for inspection failure: all ages, brands and models"
+#| tbl-subcap: 
+#|   - "Most common reasons"
+#|   - "All reasons"
+#| layout-ncol: 2
+##| column: page
+
+dta_reason_1_overall_weighted |>
+  gt()
+
+dta_reasons_all_weighted |>
+  gt()
+
+```
+
+<br>
+
+## Most common reasons by vehicle age
+
+I use `vehicle_age` instead of `model_year` below, since it is a more natural way to think about `model_year` when considering 2022 inspection data.
+
+As vehicles age and are driven farther, the reasons for inspection failure change.
+
+```{r}
+#| label: fig-reasons-overall-yearly
+#| fig-cap: "Most common reasons for inspection failure by vehicle age"
+#| fig-width: 20
+#| fig-height: 10
+#| column: screen-right
+#| warning: false
+
+dta_reason_1_overall_yearly_weighted |>
+  ggplot(aes(vehicle_age, rank, color = reason)) + #failure_reason_1),
+  geom_bump(show.legend = FALSE) +
+  geom_point(show.legend = FALSE) +
+  geom_label(aes(label = reason), #failure_reason_1),
+             show.legend = FALSE,
+             size = 5) +
+  scale_x_continuous(breaks = 1:15,
+                     position = "top") +
+  scale_y_reverse(breaks = 1:15) +
+  theme(panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.title.x = element_text(size = 18, hjust = 0),
+        axis.title.y = element_text(size = 18, hjust = 1)) +
+  labs(
+    title = "Most common reasons for inspection failure by vehicle age",
+    subtitle = "Ranked by number of failures. All years, brands and models. Rank 1 is most common",
+    x = "Vehicle age",
+    y = "Rank",
+    caption = my_caption
+  )
+```
+
+<br>
+
+The higher-ranked reasons are much more frequent, and as vehicles age, the top reasons occur even more often: the top reason is more than 15x at age 15 compared to age 4 (compared to rank 2 reason at age for, since the first reason is "not provided"). See @fig-reasons-overall-yearly above.
+
+```{r}
+#| label: fig-reasons-overall-yearly-frequency-scaled
+#| fig-cap: "Frequency of most common reasons for inspection failure by vehicle age"
+#| fig-width: 20
+#| fig-height: 10
+#| column: screen-right
+#| warning: false
+
+data_for_plot <- dta_reason_1_overall_yearly_weighted |>
+  mutate(n_k = round(n_failures / 1000),
+         plot_label = if_else(n_k == 0,
+                              glue("{n_failures}"),
+                              glue("{n_k}K"))
+  )
+
+data_for_label_left <- data_for_plot |>
+  filter(vehicle_age == min(vehicle_age))
+
+data_for_label_right <- data_for_plot |>
+  filter(vehicle_age == max(vehicle_age))
+
+data_for_plot |>
+  ggplot(aes(vehicle_age, rank, color = reason)) +
+  geom_bump(show.legend = FALSE) +
+  geom_point(show.legend = FALSE) +
+  geom_label(aes(label = plot_label, size = n_failures),
+             show.legend = FALSE) + #size = 7
+  geom_text(data = data_for_label_left,
+            aes(x = vehicle_age, y = rank, color = reason, label = reason),
+            hjust = 1, nudge_x = -0.4, size = 7,
+            show.legend = FALSE) +
+  geom_text(data = data_for_label_right,
+            aes(x = vehicle_age, y = rank, color = reason, label = reason),
+            hjust = 0, nudge_x = 0.5, size = 7,
+            show.legend = FALSE) +
+  scale_x_continuous(breaks = 4:15,
+                     position = "top") +
+  scale_y_reverse(breaks = 1:15) +
+  scale_size_continuous(range = c(4, 11)) +
+  coord_cartesian(x = c(2, 17)) +
+  theme(panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.title.x = element_text(size = 18, hjust = 0),
+        axis.title.y = element_text(size = 18, hjust = 1)) +
+  labs(
+    title = "Frequency of most common reasons for inspection failure by vehicle age",
+    subtitle = "Ranked by number of failures. All years, brands and models. Rank 1 is most common.",
+    x = "Vehicle age",
+    y = "Rank",
+    caption = my_caption
+  )
+```
+
+
+<br>
+
+## All reasons by vehicle age {#sec-all-reasons}
+
+In some cases the data includes a second and third most common reason. For the following plots, I estimated the frequency of failures for second and third most common reasons for any (`vehicle_age`, `brand`, `model`) as follows:
+
+* most common: `r percent(1.0)` * `failure_rate`
+* second most common: `r percent(0.35)` * `failure_rate`
+* third most common: `r percent(0.15)` * `failure_rate`
+
+I then summed them by reason and plotted the results below (@fig-reasons-all-yearly and @fig-reasons-all-yearly-frequency-scaled).
+
+```{r}
+#| label: fig-reasons-all-yearly
+#| fig-cap: "Reasons for inspection failure by vehicle age (including all reasons)"
+#| fig-width: 20
+#| fig-height: 10
+#| column: screen-right
+#| warning: false
+
+dta_reasons_all_yearly_weighted |>
+  ggplot(aes(vehicle_age, rank, color = reason)) +
+  geom_bump(show.legend = FALSE) +
+  geom_point(show.legend = FALSE) +
+  geom_label(aes(label = reason),
+             show.legend = FALSE,
+             size = 5) +
+  scale_x_continuous(breaks = 1:15,
+                     position = "top") +
+  scale_y_reverse(breaks = 1:15) +
+  theme(panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.title.x = element_text(size = 18, hjust = 0),
+        axis.title.y = element_text(size = 18, hjust = 1)) +
+  labs(
+    title = "Reasons for inspection failure by vehicle age (including all reasons)",
+    subtitle = "Ranked by number of failures. All years, brands and models. Rank 1 is most common.",
+    x = "Vehicle age",
+    y = "Rank",
+    caption = my_caption
+  )
+```
+
+<br>
+
+The higher-ranked reasons are much more frequent, and as vehicles age the top reasons occur more often: the top reason is more than 15x at age 15 compared to age 4 (the first reason listed in age 4 is no answer ("not provided"). See @fig-reasons-overall-yearly above.
+
+```{r}
+#| label: fig-reasons-all-yearly-frequency-scaled
+#| fig-cap: "Frequency of all reasons for inspection failure by vehicle age"
+#| fig-width: 20
+#| fig-height: 10
+#| column: screen-right
+#| warning: false
+
+data_for_plot <- dta_reasons_all_yearly_weighted |>
+  mutate(n_k = round(n_failures / 1000),
+         plot_label = if_else(n_k == 0,
+                              glue("{n_failures}"),
+                              glue("{n_k}K"))
+  )
+
+data_for_label_left <- data_for_plot |>
+  filter(vehicle_age == min(vehicle_age))
+
+data_for_label_right <- data_for_plot |>
+  filter(vehicle_age == max(vehicle_age))
+
+data_for_plot |>
+  ggplot(aes(vehicle_age, rank, color = reason)) +
+  geom_bump(show.legend = FALSE) +
+  geom_point(show.legend = FALSE) +
+  geom_label(aes(label = plot_label, size = n_failures),
+             show.legend = FALSE) + #size = 5
+  geom_text(data = data_for_label_left,
+            aes(x = vehicle_age, y = rank, color = reason, label = reason),
+            hjust = 1, nudge_x = -0.4, size = 7,
+            show.legend = FALSE) +
+  geom_text(data = data_for_label_right,
+            aes(x = vehicle_age, y = rank, color = reason, label = reason),
+            hjust = 0, nudge_x = 0.5, size = 7,
+            show.legend = FALSE) +
+  scale_x_continuous(breaks = 4:15,
+                     position = "top") +
+  scale_y_reverse(breaks = 1:15) +
+  scale_size_continuous(range = c(4, 11)) +
+  #expand_limits(x = c(2, 17)) +
+  coord_cartesian(x = c(2, 17)) +
+  theme(panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_text(size = 18),
+        axis.title.x = element_text(size = 18, hjust = 0),
+        axis.title.y = element_text(size = 18, hjust = 1)) +
+  labs(
+    title = "Frequency of all reasons for inspection failure by vehicle age",
+    subtitle = "Ranked by number of failures. All years, brands and models. Rank 1 is most common.",
+    x = "Vehicle age",
+    y = "Rank",
+    caption = my_caption
+  )
+```
+
+<br>
+
+## Brand differences in most common reasons
+
+***TODO: Pick a few brands and show their different results***
+
+***TODO: Make a plot function***
+
+
+```{r}
+knitr::knit_exit()
+```
+

@@ -1,0 +1,269 @@
+# Power train mix by brand {#sec-power-train-mix-by-brand}
+
+```{r}
+#| label: setup
+#| include: false
+
+source("./scripts/setup-libraries.R")
+source("./scripts/setup-data-vehicles-on-road-snapshot.R")
+
+my_caption <- glue("Plot: Daniel Moul\nData: TRAFICOM tieto.traficom.fi, trafi2.stat.fi",
+                   "\nSnapshot of vehicles in traffic on Finnish mainland on 2023-09-30",
+                   "; limited to model years {min_model_year}-{max_model_year}")
+
+brand_cutoff_n <- 10
+
+```
+
+```{r}
+data_for_table <- dta_by_brand_power_train |>
+  select(brand, power_train, count) |>
+  summarize(n = sum(count),
+            .by = c(brand, power_train)
+  ) |>
+  complete(brand, power_train, fill = list(n = 0)) |>
+  mutate(brand = fct_reorder(brand, -n, sum)) |>
+  arrange(brand, desc(power_train)) |>
+  pivot_wider(names_from = "power_train",
+              values_from = "n") |>
+  clean_names() |>
+  rename(petrol_electric = petrol_electric_plug_in_hybrid,
+         diesel_electric = diesel_electric_plug_in_hybrid) |>
+  mutate(subtotal = petrol_electric + diesel_electric + battery_electric) |>
+  mutate(total = petrol + diesel + subtotal + petrol_cng + natural_gas_cng + petrol_ethanol + other,
+         pct = subtotal / total) |>
+  relocate(diesel_electric, .after = petrol_electric) |>
+  relocate(c(subtotal, pct), .after = battery_electric)
+
+```
+
+
+The following tables with 2023-09-30 snapshot data provide information multiple ways to simplify answering particular questions as noted in each section.
+
+## Automotive brands with at least some battery electric power train market share in Finland 
+
+### Sorted by number of battery electric vehicles
+
+Which helps to answer the questions
+
+* What are the battery electric vehicles on the road in Finland?
+* If I were to spot a battery electric vehicle in Finland, which brands would it likely be?
+
+```{r}
+#| label: tbl-power-train-by-brand-electric-table-1
+#| tbl-cap: "Automotive brands with at least some electric power train market share in Finland"
+#| column: page
+
+data_for_table  |>
+  arrange(desc(battery_electric)) |>
+  filter(battery_electric > 0) %>%
+  mutate(rank = nrow(.) - rank(battery_electric) + 1,
+         brand = as.character(brand)) |>
+  relocate(rank) |>
+  gt(rowname_col = "brand") |>
+  tab_options(table.font.size = 10) |>
+  tab_header(md(glue("**Automotive brands with some hybrid and electric<br>power train market share in Finland**",
+                     "<br>Vehicles in traffic 2023-09-30"))
+  ) |>
+  tab_source_note(md("*Source: TRAFICOM tieto.traficom.fi, trafi2.stat.fi*")) |>
+  tab_spanner(columns = c(petrol_electric, diesel_electric, battery_electric, pct, subtotal),
+              label = "hybrid and electric") |>
+  cols_align(columns = brand,
+             align = "left") |>
+  fmt_percent(columns = pct,
+              decimals = 1) |>
+  fmt_number(columns = total,
+             decimals = 0) |>
+  sub_missing() |>
+  grand_summary_rows(
+    columns = c(petrol:subtotal, petrol_cng:total),
+    fns = list(id = "brand", label = "Total", fn = "sum"),
+    fmt = ~ fmt_number(., use_seps = FALSE,
+                       decimals = 0)
+  ) |>
+  data_color(
+    columns = battery_electric,
+    palette = "grey95"
+  )
+
+```
+
+<br>
+
+### Sorted by percent of brand's vehicles that are hybrid or electric
+
+Which helps to answer the question
+
+* Which brands are succeeding (or not succeeding) in moving to hybrid or battery electric power trains?
+
+Note that in this ranking, having a large "install base" of older petrol or hybrid vehicles counts against a brand.
+
+```{r}
+#| label: tbl-power-train-by-brand-electric-table-2
+#| tbl-cap: "Automotive brands with at least some electric power train market share in Finland"
+#| column: page
+
+data_for_table  |>
+  arrange(desc(pct)) |>
+  filter(subtotal > 0) %>%
+  mutate(rank = nrow(.) - rank(pct) + 1,
+         brand = as.character(brand)) |>
+  relocate(rank) |>
+  gt(rowname_col = "brand") |>
+  tab_options(table.font.size = 10) |>
+  tab_header(md(glue("**Automotive brands with some hybrid and electric<br>power train market share in Finland**",
+                     "<br>Vehicles in traffic 2023-09-30"))
+  ) |>
+  tab_source_note(md("*Source: TRAFICOM tieto.traficom.fi, trafi2.stat.fi*")) |>
+  tab_spanner(columns = c(petrol_electric, diesel_electric, battery_electric, pct, subtotal),
+              label = "hybrid and electric") |>
+  cols_align(columns = brand,
+             align = "left") |>
+  fmt_percent(columns = pct,
+              decimals = 1) |>
+  sub_missing() |>
+  grand_summary_rows(
+    columns = c(petrol:subtotal, petrol_cng:total),
+    fns = list(id = "brand", label = "Total", fn = "sum"),
+    fmt = ~ fmt_number(., use_seps = FALSE,
+                       decimals = 0)
+  ) |>
+  data_color(
+    columns = pct,
+    palette = "grey95"
+  )
+
+```
+
+<br>
+
+### Sorted by number of vehicles all power trains
+
+Which helps to answer the question
+
+* Which brands have the largest and smallest market share in Finland independent of power train technology?
+
+```{r}
+#| label: tbl-power-train-by-brand-electric-table-3
+#| tbl-cap: "Automotive brands with at least some electric power train market share in Finland"
+#| column: page
+
+data_for_table  |>
+  arrange(desc(total)) |>
+  filter(total > 0) %>%
+  mutate(rank = nrow(.) - rank(total) + 1,
+         brand = as.character(brand)) |>
+  relocate(rank) |>
+  gt(rowname_col = "brand") |>
+  tab_options(table.font.size = 10) |>
+  tab_header(md(glue("**Automotive brands with some hybrid and electric<br>power train market share in Finland**",
+                     "<br>Vehicles in traffic 2023-09-30"))
+  ) |>
+  tab_source_note(md("*Source: TRAFICOM tieto.traficom.fi, trafi2.stat.fi*")) |>
+  tab_spanner(columns = c(petrol_electric, diesel_electric, battery_electric, pct, subtotal),
+              label = "hybrid and electric") |>
+  cols_align(columns = brand,
+             align = "left") |>
+  fmt_percent(columns = pct,
+              decimals = 1) |>
+  sub_missing() |>
+  grand_summary_rows(
+    columns = c(petrol:subtotal, petrol_cng:total),
+    fns = list(id = "brand", label = "Total", fn = "sum"),
+    fmt = ~ fmt_number(., use_seps = FALSE,
+                       decimals = 0)
+  ) |>
+  data_color(
+    columns = total,
+    palette = "grey95"
+  )
+
+```
+
+<br>
+
+
+## Automotive brands WITHOUT hybrid or electric vehicles
+
+### Sorted by number of vehicles all power trains
+
+Which helps to answer the question
+
+* Which brands (from the perspective of the Finnish passenger vehicle market) seemingly are not even trying to move to hybrid or battery electric power trains?
+
+```{r}
+#| label: tbl-power-train-by-brand-electric-table-5
+#| tbl-cap: "Automotive brands WITHOUT any electric power train market share in Finland"
+#| column: page
+
+data_for_table  |>
+  arrange(desc(total)) %>%
+  filter(subtotal == 0 & total > 0) %>%
+  mutate(rank = nrow(.) - rank(total) + 1,
+         brand = as.character(brand)) |>
+  relocate(rank) |>
+  gt(rowname_col = "brand") |>
+  tab_options(table.font.size = 10) |>
+  tab_header(md(glue("**Automotive brands without hybrid or electric<br>power train market share in Finland**",
+                     "<br>Vehicles in traffic 2023-09-30"))
+  ) |>
+  tab_source_note(md("*Source: TRAFICOM tieto.traficom.fi, trafi2.stat.fi*")) |>
+  tab_spanner(columns = c(petrol_electric, diesel_electric, battery_electric, pct, subtotal),
+              label = "hybrid and electric") |>
+  cols_align(columns = brand,
+             align = "left") |>
+  fmt_percent(columns = pct,
+              decimals = 1) |>
+  sub_missing() |>
+  grand_summary_rows(
+    columns = c(petrol:subtotal, petrol_cng:total),
+    fns = list(id = "brand", label = "Total", fn = "sum"),
+    fmt = ~ fmt_number(., use_seps = FALSE,
+                       decimals = 0)
+  ) |>
+  data_color(
+    columns = total,
+    palette = "grey95" #c("dodgerblue"),
+    #alpha = 0.1
+  )
+
+```
+
+<br>
+
+## Automotive brands sorted by alphabetical order
+
+Which simplifies finding the information by brand.
+
+```{r}
+#| label: tbl-power-train-by-brand-electric-table-4
+#| tbl-cap: "Automotive brands with at least some market share in Finland"
+#| column: page
+
+data_for_table  |>
+  arrange(as.character(brand)) |>
+  filter(total > 0) %>%
+  gt(rowname_col = "brand") |>
+  tab_options(table.font.size = 10) |>
+  tab_header(md(glue("**Automotive brands with some market share in Finland**",
+                     "<br>Vehicles in traffic 2023-09-30"))
+  ) |>
+  tab_source_note(md("*Source: TRAFICOM tieto.traficom.fi, trafi2.stat.fi*")) |>
+  tab_spanner(columns = c(petrol_electric, diesel_electric, battery_electric, pct, subtotal),
+              label = "hybrid and electric") |>
+  cols_align(columns = brand,
+             align = "left") |>
+  fmt_percent(columns = pct,
+              decimals = 1) |>
+  sub_missing() |>
+  grand_summary_rows(
+    columns = c(petrol:subtotal, petrol_cng:total),
+    fns = list(id = "brand", label = "Total", fn = "sum"),
+    fmt = ~ fmt_number(., use_seps = FALSE,
+                       decimals = 0)
+  )
+
+```
+
+<br>
+

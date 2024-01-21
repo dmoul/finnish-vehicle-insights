@@ -1,0 +1,256 @@
+# Modeling failure rate {#sec-modeling-failure-rate}
+
+```{r}
+#| label: setup
+#| include: false
+
+source("./scripts/setup-libraries.R")
+source("./scripts/setup-data-inspection-failures.R")
+
+years_cutoff_n <- 10 # minimum years of data for a model to be included in data_for_modeling
+
+brands_cutoff_modeling_min <- 30 # include a brand in the linear regressions if it has 30+ data points
+  
+```
+
+```{r}
+#| label: define-data-for-model
+
+data_for_model <- dta_working_set |>
+  mutate(median_km_driven_10K = median_km_driven / 10000) |>
+  filter(any(model_year >= 2015),
+         .by = brand) |>
+  filter(n_model_years_brand >= 3) |>
+  mutate(brand = fct_reorder(brand, failure_rate, mean))
+
+```
+
+Because `failure_rate` is influenced by distance driven and vehicle age (see @sec-causal-graph Causal graph), a simple list of failure rates by brand (@tbl-ranked-failure-rate-brand) can be misleading. For example:
+
+1. Brands with relatively more vehicles in older models years will have "unfairly" higher failure rates.
+
+1. If brands mostly offer expensive sports cars that are driven less than average, then these brands will have "unfairly" low failure rates.
+
+If we accept that inspection failure rate is a good proxy for brand quality, it's possible to identify relative brand quality by accounting for these factors using regression analysis.
+
+```{r}
+#| label: tbl-ranked-failure-rate-brand
+#| tbl-cap: "Brands ranked by average failure rate\n(not a fair ranking)"
+##| column: page-right
+
+data_for_model |>
+  summarize(avg_failure_rate = weighted.mean(failure_rate, w = inspection_count),
+            model_years_in_data = paste0(min(model_year), "-", max(model_year)),
+            .by = brand) |>
+  arrange(avg_failure_rate) |>
+  mutate(rank = rank(avg_failure_rate)) |>
+  gt() |>
+  tab_header(md("**Brands ranked by average failure rate over all model years**")) |>
+  fmt_number(columns = avg_failure_rate,
+             decimals = 2)
+
+```
+
+### The two simplest models
+
+```{r}
+mod1 <- data_for_model |>
+  lm(failure_rate ~ vehicle_age,
+     data = _)
+
+mod2 <- data_for_model |>
+  lm(failure_rate ~ median_km_driven_10K,
+     data = _)
+
+```
+
+According to @tbl-simple-models-compared
+
+* For every one year increase in `vehicle_age`, the `failure_rate` went up by 2.5%.
+
+* For every 10K km driven (`median_km_driven_10K`), the `failure_rate` increased by 1%.
+
+```{r}
+#| label: tbl-simple-models-compared
+#| tbl-cap: "Simple linear models compared"
+#| column: screen-right
+
+p1 <- bind_cols(
+  tidy(mod1,
+       conf.int = 0.95) |>
+  select(term, estimate, std.error, p.value, conf.low, conf.high),
+  glance(mod1) |>
+  select(adj.r.squared, sigma, logLik, AIC, BIC, nobs)
+) |> mutate(model = "mod1",
+            formula = "lm(failure_rate ~ vehicle_age)")
+
+p2 <- bind_cols(
+  tidy(mod2,
+       conf.int = 0.95) |>
+  select(term, estimate, std.error, p.value, conf.low, conf.high),
+  glance(mod2) |>
+  select(adj.r.squared, sigma, logLik, AIC, BIC, nobs)
+) |> mutate(model = "mod2",
+            formula = "lm(failure_rate ~ median_km_driven_10K)")
+
+bind_rows(p1, p2) |>
+  relocate(c(model, formula), .before = term) |>
+  filter(term != "(Intercept)") |>
+  gt() |>
+  tab_options(table.font.size = 10) |>
+  fmt_number(columns = c(estimate, std.error, p.value, conf.low, conf.high, adj.r.squared, sigma),
+             decimals = 3) |>
+  fmt_number(columns = c( logLik, AIC, BIC),
+             decimals = 0)
+
+  # relatively higher R^2 and logLik indicates better fit
+  # relatively lower AIC indicates better fit
+  # relatively lower BIC indicates better fit
+  
+```
+
+Regressing with `vehicle_age` provides a better fit than `median_km_driven_10K`
+
+* Relatively higher $R^2$ and log likelihood
+* Relatively lower AIC and BIC
+
+This is because `vehicle_age` encompasses failures due to age as well as a lot of the information about distance driven. See @sec-causal-graph Causal graph and @tbl-model-year-distance-correlations High correlation among `model_year`, `median_km_driven` and `average_km_driven`.
+
+### Separate linear regressions for each brand
+
+For each brand separately, I calculated *lm(failure_rate ~ vehicle_age)* and *lm(failure_rate ~ median_km_driven_10K)*. I excluded brands that did not have at least `r brands_cutoff_modeling_min` data points.
+
+```{r}
+#| label: define-lm-brand-vehicle_age
+
+my_lm_model_year <- function(x) {
+  lm(failure_rate ~ vehicle_age,
+           data = x)
+}
+
+mod1_set <- data_for_model %>%
+  filter(n_model_years_brand >= brands_cutoff_modeling_min) |>
+  nest(data = c(failure_rate, vehicle_age),
+       .by = brand) |>
+  mutate(mod1 = map(data, my_lm_model_year),
+         tidyinfo = map(mod1, tidy,
+                        conf.int = TRUE,
+                        conf.level = 0.95)
+         )
+
+mod1_set_summary <- mod1_set |>
+  select(brand, tidyinfo) |>
+  unnest(tidyinfo) |>
+  select(-statistic)
+
+my_lm_km_driven <- function(x) {
+  lm(failure_rate ~ median_km_driven_10K,
+           data = x)
+}
+
+mod2_set <- data_for_model %>%
+  filter(n_model_years_brand >= brands_cutoff_modeling_min) |>
+  nest(data = c(failure_rate, median_km_driven_10K),
+       .by = brand) |>
+  mutate(mod1 = map(data, my_lm_km_driven),
+         tidyinfo = map(mod1, tidy,
+                        conf.int = TRUE,
+                        conf.level = 0.95)
+         )
+
+mod2_set_summary <- mod2_set |>
+  select(brand, tidyinfo) |>
+  unnest(tidyinfo) |>
+  select(-statistic)
+
+```
+
+## Relative brand quality in Finland
+
+Given the wide range of the 95% confidence intervals, a relative difference in brand quality can be determined in the regression with `vehicle_age` only for the highest and lowest quality brands (where the intervals do not overlap in @fig-relative-brand-quality-lm). The narrower confidence intervals in the regression using `median_km_driven_10K` provide a larger set of relative higher-quality and lower-quality brands.
+
+```{r fig.height=8, fig.width=10}
+#| label: fig-relative-brand-quality-lm
+#| fig-cap: "Relative brand quality determined using linear regression"
+#| fig-height: 8
+#| fig-width: 10
+#| column: page-right
+
+p1 <- mod1_set_summary |>
+  filter(term != "(Intercept)") |>
+  mutate(term = fct_reorder(brand, -estimate)) |>
+  ggplot() +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, y = term),
+                 height = 0.3,
+                 linewidth = 0.5, alpha = 0.4,
+                 show.legend = FALSE) +
+  geom_point(aes(x = estimate, y = term),
+             size = 1, color = "firebrick",
+             show.legend = FALSE) +
+  labs(
+    subtitle = "Increment: year of vehicle_age",
+    y = NULL,
+    tag = "A"
+  )
+
+p2 <- mod2_set_summary |>
+  filter(term != "(Intercept)") |>
+  mutate(term = fct_reorder(brand, -estimate)) |>
+  ggplot() +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, y = term),
+                 height = 0.3,
+                 linewidth = 0.5, alpha = 0.4,
+                 show.legend = FALSE) +
+  geom_point(aes(x = estimate, y = term),
+             size = 1, color = "firebrick",
+             show.legend = FALSE) +
+  labs(
+    subtitle = "Increment: 10K km driven",
+    y = NULL,
+    tag = "B"
+  )
+
+p1 + p2 + 
+  plot_annotation(
+    title = "Relative brand quality in Finland",
+    subtitle = glue("For each increment, the brand adds `estimate` to the failure rate",
+                    "\nwhen inspected in Finland. Includes brands with at least {brands_cutoff_modeling_min} data points.",
+                    " 95% CI."),
+    caption = my_caption
+  )
+
+```
+
+<br>
+
+The tables below include the estimates and confidence intervals plotted in in @fig-relative-brand-quality-lm.
+
+```{r}
+#| label: tbl-lm-each-brand
+#| tbl-cap: "Linear models for each brand"
+#| tbl-subcap: 
+#|   - "term is vehicle_age"
+#|   - "term is median_km_driven_10K"
+#| layout-ncol: 2
+#| column: page
+
+mod1_set_summary |>
+  filter(term != "(Intercept)") |>
+  mutate(plus_minus = (conf.high - conf.low) / 2) |>
+  select(-term) |>
+  gt() |>
+  fmt_number(columns = c(estimate:plus_minus),
+             decimals = 3) |>
+  tab_source_note(md("*For each brand, calculated separately: lm(failure_rate ~ vehicle_age)*"))
+
+mod2_set_summary |>
+  filter(term != "(Intercept)") |>
+  mutate(plus_minus = (conf.high - conf.low) / 2) |>
+  select(-term) |>
+  gt() |>
+  fmt_number(columns = c(estimate:plus_minus),
+             decimals = 3)|>
+  tab_source_note(md("*For each brand, calculated separately: lm(failure_rate ~ median_km_driven_10K)*"))
+
+```
+
