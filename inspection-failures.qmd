@@ -7,8 +7,6 @@
 source("./scripts/setup-libraries.R")
 source("./scripts/setup-data-inspection-failures.R")
 
-library(tidytext) # for reorder_within() and scale_y_reordered()
-
 ```
 
 Inspection failure rates in 2022 for (`model_year`, `brand`, `model`) vary from `r percent(min(dta_working_set$failure_rate))` to `r percent(max(dta_working_set$failure_rate))`:
@@ -89,8 +87,6 @@ dta_working_set |>
 
 This is generally true at the brand level as well (@fig-inspection-failures-all-models-by-year).
 
-***TODO: Fix sawtooth below***
-
 ```{r, fig.height=6, fig.width=8}
 #| label: fig-inspection-failures-all-models-by-year
 #| fig-cap: "Four views of inspection failure data (brands)"
@@ -109,7 +105,7 @@ data_for_plot <- all_models_yearly |>
 model_year_range <- glue("{min(data_for_plot$model_year)} - {max(data_for_plot$model_year)}")
 
 data_for_plot |>
-  pivot_longer(cols = inspection_count:median_km_driven,
+  pivot_longer(cols = c(inspection_count, failure_rate, average_km_driven, median_km_driven),
                names_to = "variable",
                values_to = "value") |>
   mutate(variable = fct_relevel(variable, c("average_km_driven", "median_km_driven",
@@ -319,11 +315,11 @@ data_for_plot |>
 
 <br>
 
-Failure rates vary to a surprising amount within most brands when plotted against model year (@fig-models-per-brand-each-each-model-year).
+Failure rates vary to a surprising amount within most brands when plotted against vehicle age (@fig-models-per-brand-each-each-model-year).
 
 ```{r, fig.height=12, fig.width=15}
 #| label: fig-models-per-brand-each-each-model-year
-#| fig-cap: "Failure rates for each model by model year faceted by brand"
+#| fig-cap: "Failure rates for each model by vehicle age faceted by brand"
 #| fig-height: 12
 #| fig-width: 15
 #| column: screen-right
@@ -341,7 +337,7 @@ data_for_plot |>
   facet_wrap( ~ brand) +
   theme(legend.position = "bottom") +
   labs(
-    title = "Vehicle inspection failure percentage by model_year for each model (in 2022 inspection data)",
+    title = "Vehicle inspection failure percentage by vehicle age for each model",
     subtitle = glue("All brands and models with at least 3 model years; model years {model_year_range}"),
     x = "Vehicle age",
     y = "Failure rate",

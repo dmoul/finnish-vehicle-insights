@@ -3,7 +3,7 @@
 
 ###### Constants
 
-my_caption <- "Plot: Daniel Moul\nData: Finland 2022 vehicle inspection data\nTRAFICOM tieto.traficom.fi, trafi2.stat.fi"
+my_caption <- "Plot: Daniel Moul\nData: Finland 2022 vehicle inspections\nTraficom tieto.traficom.fi, trafi2.stat.fi"
 
 brand_cutoff_n <- 10
 model_cutoff_n <- 25
@@ -101,7 +101,7 @@ if(!file.exists(fname)) {
     # TODO: fix the following kludge; not sure why translation above didn't work for this one string
     mutate(model_year = if_else(str_detect(model_year, "Vuodet"),
                                 "All model years",
-                                model_year))
+                                model_year)) 
   
   dta_2022 <- left_join(dta_2022_tmp,
                         dta_2022_tmp |>
@@ -152,7 +152,14 @@ all_brands_yearly <- dta_2022 |>
 all_models_yearly <- dta_2022 |>
   filter(model_year %in% 2001:2023,
          model == "All models",
-         brand != "All brands")
+         brand != "All brands") |>
+  mutate(model_year = as.numeric(model_year)) |>
+  reframe(failure_rate = weighted.mean(failure_rate, w = inspection_count),
+          average_km_driven = round(weighted.mean(average_km_driven, w = inspection_count)),
+          median_km_driven = round(weighted.mean(median_km_driven, w = inspection_count)),
+          inspection_count = sum(inspection_count),
+          .by = c(model_year, brand)
+  )
 
 n_brands_all <- length(unique(dta_2022_no_totals$brand))
 n_models_all <- length(unique(dta_2022_no_totals$brand_model))
