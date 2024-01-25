@@ -4,13 +4,14 @@ By Daniel Moul
 
 What can we learn from Finnish passenger vehicle data?
 
-Finland, a small country of about 5.6M in 2023, offers a convenient window into larger trends in passenger vehicles. Using three data sets I downloaded from the Finnish Ministry of Transportation and Communications (FINCOM) I explore the following questions:
+Finland, a country with small population of about 5.6M in 2023, offers a convenient window into larger trends in passenger vehicles. Using three data sets I downloaded from the Finnish Ministry of Transportation and Communications agency [Trafficom](https://traficom.fi/en) I explore the following questions:
 
--   Looking at passenger vehicle inspection data from 2022: Which brands are most reliable? Least reliable? What are the most common reasons for inspection failure by vehicle brand, and how does this change as vehicles age? What is the relationship between driving distance and inspection failure? What are the brands' market share, and how has this changed over the years (since the mix of vehicles for a model year approximately indicate the purchase decisions in that year)?
+* Looking at passenger vehicle inspection data from 2022: Which brands are most reliable? Least reliable? What are the most common reasons for inspection failure by vehicle brand, and how does this change as vehicles age? What is the relationship between driving distance and inspection failure? What are the brands' market share, and how has this changed over the years (since the mix of vehicles for a model year approximately indicate the purchase decisions in that year)?
 
--   Looking at a snapshot of passenger vehicles in traffic on 2023-09-30: What is the mix of power trains? By brand? How has this mix changed over the years? Which brands have been most successful in the transition to electrification, and has this transition opened a space for new market entrants? If so, which ones?
+* Looking at a snapshot of passenger vehicles in traffic on 2023-09-30: What is the mix of power trains? By brand? How has this mix changed over the years? Which brands have been most successful in the transition to electrification, and has this transition opened a space for new market entrants? If so, which ones?
 
--   Looking at used car imports 2014-2023: How many vehicles imported? How old are most vehicles when they are imported? Which brands are most commonly imported. How do imports compare with the full set of passenger vehicles in Finland?
+* Looking at used car imports 2014-2023: How many vehicles were imported? How old are most vehicles when they are imported? Which brands are most commonly imported? How do imports compare with the full set of passenger vehicles in Finland?
+
 
 These data sets provide one set of answers--certainly not the last word--in answering these questions.
 
