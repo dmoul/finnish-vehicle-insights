@@ -7,9 +7,7 @@
 source("./scripts/setup-libraries.R")
 source("./scripts/setup-data-inspection-failures.R")
 
-my_caption <- "Plot: Daniel Moul\nData: TRAFICOM tieto.traficom.fi, trafi2.stat.fi"
-
-library(dagitty)
+my_caption <- "Plot: Daniel Moul\nData: Traficom tieto.traficom.fi, trafi2.stat.fi"
 
 ```
 

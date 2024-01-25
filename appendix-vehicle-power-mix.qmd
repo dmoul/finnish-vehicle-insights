@@ -7,7 +7,7 @@
 source("./scripts/setup-libraries.R")
 source("./scripts/setup-data-vehicles-on-road-snapshot.R")
 
-my_caption <- glue("Plot: Daniel Moul\nData: TRAFICOM tieto.traficom.fi, trafi2.stat.fi",
+my_caption <- glue("Plot: Daniel Moul\nData: Traficom tieto.traficom.fi, trafi2.stat.fi",
                    "\nSnapshot of vehicles in traffic on Finnish mainland on 2023-09-30",
                    "; limited to model years {min_model_year}-{max_model_year}")
 
