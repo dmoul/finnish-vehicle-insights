@@ -7,7 +7,7 @@
 source("./scripts/setup-libraries.R")
 source("./scripts/setup-data-used-vehicle-imports.R")
 
-my_caption <- glue("Plot: Daniel Moul\nData: TRAFICOM tieto.traficom.fi, trafi2.stat.fi",
+my_caption <- glue("Plot: Daniel Moul\nData: Traficom tieto.traficom.fi, trafi2.stat.fi",
                    "\nUsed passenger vehicles imported 2014-2023",
                    "; limited to model years {min_model_year}-{max_model_year}")
 
