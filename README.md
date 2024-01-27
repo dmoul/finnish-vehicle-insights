@@ -15,7 +15,7 @@ Finland, a country with small population of about 5.6M in 2023, offers a conveni
 
 These data sets provide one set of answers--certainly not the last word--in answering these questions.
 
-The rendered output from the scripts in this repo is available at ***TBD***
+The rendered output from the scripts in this repo is available at <https://dmoul.github.io/finnish-vehicle-insights/>
 
 ## Acknowledgements
 
