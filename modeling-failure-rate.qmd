@@ -29,11 +29,14 @@ data_for_model <- dta_working_set |>
 
 ## Unfair average failure rates
 
-Because `failure_rate` is influenced by distance driven and vehicle age (see @sec-causal-graph Causal graph), a simple list of failure rates by brand (@tbl-ranked-failure-rate-brand) can be misleading. For example:
+Because `failure_rate` is influenced by distance driven and vehicle age (see @sec-causal-graph Causal graph), a simple list of average failure rates by brand (@tbl-ranked-failure-rate-brand) can be misleading. For example:
 
 1. Brands with relatively more vehicles in older models years will have "unfairly" higher failure rates.
 
+1. The lowest quality vehicles may be withdrawn from service relatively earlier than higher quality cars, "unfairly" reducing the lowest quality brands' failure rates.
+
 1. If brands mostly offer expensive sports cars that are driven less than average, then these brands will have "unfairly" low failure rates.
+
 
 ```{r}
 #| label: tbl-ranked-failure-rate-brand

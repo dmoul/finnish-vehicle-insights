@@ -200,7 +200,7 @@ subset_by_brand_dta_reasons_all_yearly_weighted <- function(tbl = dta_working_se
 
 ```
 
-In the tables below (@tbl-reasons-overall) I rank reasons by the number of inspection failures reported having this reason in two ways: (a) considering only the most common reason for each (`model_year`, `brand`, `model`); and (b) also including second and third most common reasons when they are available. I estimated the rate of second and third-most common reasons at 35% and 15% respectively. Since the order of the reasons are quite similar, I use (a) "most common reasons" in the plots in this chapter, since it's easier to understand.
+In the tables below (@tbl-reasons-overall) I rank reasons by the number of inspection failures reported having this reason in two ways: (a) considering only the most common reason for each (`model_year`, `brand`, `model`); and (b) also including second and third most common reasons when they are available. I estimate the rate of second and third-most common reasons at 35% and 15% respectively. Since the order of the reasons are quite similar, I use (a) "most common reasons" in the plots in this chapter, since it's easier to understand.
 
 ```{r}
 #| label: tbl-reasons-overall
