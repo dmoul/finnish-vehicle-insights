@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.475">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>What can we learn from Finnish passenger vehicle data? - Appendix A — Notes on the data</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./appendix-inspection-data.html" rel="next">
+<link href="./used-vehicle-imports.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+    <div class="container-fluid d-flex justify-content-between">
+      <h1 class="quarto-secondary-nav-title">Appendix A — Notes on the data</h1>
+      <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
+        <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">What can we learn from Finnish passenger vehicle data?</a> 
+    </div>
+      </div>
+      <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+      </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">Introduction</a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./brands-models.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Brands and models</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./inspection-failures.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Inspection failures</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./modeling-failure-rate.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Modeling failure rate</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./failure-reasons.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Failure reasons</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./power-train-mix.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Changing power train mix</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./used-vehicle-imports.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Used vehicle imports</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">Appendices</a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" aria-expanded="true">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-notes-data.html" class="sidebar-item-text sidebar-link active"><span class="chapter-number">A</span>&nbsp; <span class="chapter-title">Notes on the data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-inspection-data.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Inspection data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-vehicle-power-mix.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">C</span>&nbsp; <span class="chapter-title">Power train mix by brand</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./appendix-translations.html" class="sidebar-item-text sidebar-link"><span class="chapter-number">D</span>&nbsp; <span class="chapter-title">Translated text</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#data-set-failure-rates-in-2022-inspection-data" id="toc-data-set-failure-rates-in-2022-inspection-data" class="nav-link active" data-scroll-target="#data-set-failure-rates-in-2022-inspection-data"><span class="toc-section-number">A.1</span>  Data set: Failure rates in 2022 inspection data</a>
+  <ul class="collapse">
+  <li><a href="#about-the-data" id="toc-about-the-data" class="nav-link" data-scroll-target="#about-the-data"><span class="toc-section-number">A.1.1</span>  About the data</a></li>
+  <li><a href="#sec-causal-graph" id="toc-sec-causal-graph" class="nav-link" data-scroll-target="#sec-causal-graph"><span class="toc-section-number">A.1.2</span>  Causal graph</a></li>
+  <li><a href="#modeling-failure-rate-and-brandmodel-quality" id="toc-modeling-failure-rate-and-brandmodel-quality" class="nav-link" data-scroll-target="#modeling-failure-rate-and-brandmodel-quality"><span class="toc-section-number">A.1.3</span>  Modeling failure rate and brand/model quality</a></li>
+  <li><a href="#data-files" id="toc-data-files" class="nav-link" data-scroll-target="#data-files"><span class="toc-section-number">A.1.4</span>  Data files</a></li>
+  </ul></li>
+  <li><a href="#sec-dataset-snapshot" id="toc-sec-dataset-snapshot" class="nav-link" data-scroll-target="#sec-dataset-snapshot"><span class="toc-section-number">A.2</span>  Data set: Vehicles on the road as of 30 Sep 2023</a>
+  <ul class="collapse">
+  <li><a href="#about-the-data-1" id="toc-about-the-data-1" class="nav-link" data-scroll-target="#about-the-data-1"><span class="toc-section-number">A.2.1</span>  About the data</a></li>
+  <li><a href="#data-file" id="toc-data-file" class="nav-link" data-scroll-target="#data-file"><span class="toc-section-number">A.2.2</span>  Data file</a></li>
+  </ul></li>
+  <li><a href="#data-set-imported-used-vehicles" id="toc-data-set-imported-used-vehicles" class="nav-link" data-scroll-target="#data-set-imported-used-vehicles"><span class="toc-section-number">A.3</span>  Data set: Imported used vehicles</a>
+  <ul class="collapse">
+  <li><a href="#about-the-data-2" id="toc-about-the-data-2" class="nav-link" data-scroll-target="#about-the-data-2"><span class="toc-section-number">A.3.1</span>  About the data</a></li>
+  <li><a href="#data-file-1" id="toc-data-file-1" class="nav-link" data-scroll-target="#data-file-1"><span class="toc-section-number">A.3.2</span>  Data file</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span id="sec-appendix-notes-data" class="quarto-section-identifier d-none d-lg-block">Appendix A — Notes on the data</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>I downloaded three data sets from the Finnish Transport and Communications Agency (FINCOM) Traficom website. In all cases I limited the data to the Finnish mainland, excluding the autonomous region of Åland, because either the data was not included or the island region is so small and experiences different conditions compared to the rest of Finland.</p>
+<section id="data-set-failure-rates-in-2022-inspection-data" class="level2" data-number="A.1">
+<h2 data-number="A.1" class="anchored" data-anchor-id="data-set-failure-rates-in-2022-inspection-data"><span class="header-section-number">A.1</span> Data set: Failure rates in 2022 inspection data</h2>
+<p><a href="https://tieto.traficom.fi/en/statistics/statistics-inspections">Statistics on inspections</a>, specifically <a href="https://tieto.traficom.fi/sites/default/files/media/file/Henkilöautojen-määräaikaiskatsastusten-vuositilasto-2022.xlsx">Model-specific statistics on faults detected in passenger cars during inspection in 2022 by year of entry into service (in Finnish) (xlsx, 190.02 KB)</a></p>
+<blockquote class="blockquote">
+<p>The statistics include vehicle models of which at least 100 specimens have been inspected. The reasons for failed inspections include only the faults that have occurred in at least 10 per cent of the model in question or whose share is at least 1 per cent.</p>
+</blockquote>
+<section id="about-the-data" class="level3" data-number="A.1.1">
+<h3 data-number="A.1.1" class="anchored" data-anchor-id="about-the-data"><span class="header-section-number">A.1.1</span> About the data</h3>
+<p>I downloaded the following data on 2023-12-18 (<a href="brands-models.html#tbl-sample-of-inspection-data1">Table&nbsp;<span>1.1</span></a>):</p>
+<ul>
+<li><p>Each row of data is for a unique combination of (<code>model_year</code>, <code>model</code>, <code>brand</code>)</p></li>
+<li><p><code>inspection_count</code> and <code>failure_rate</code> by <code>model</code> and <code>model_year</code> (in some places I use <code>model_year</code> recoded as <code>vehicle_age</code>)</p></li>
+<li><p>A mapping between <code>model</code> and <code>brand</code>, which enables brand-level aggregation</p></li>
+<li><p>Most common reason <code>failure_reason</code> and in some cases second and third most common reason</p></li>
+<li><p>I used <a href="https://deepl.com%3E">deepl.com</a> to translate column names and descriptive values. I created a “translation” sheet in the modified 2022 source file.</p></li>
+<li><p>In the modified 2022 data source file I removed “\n” from the source in column and cell values, which removed the need to manually address “\r\n” substrings on the translation sheet. Since I was having difficulty getting it to work in my R script, I did this in LibreOffice (regex find/replace) and used a modified source file which has “cleaned” in the file name.</p></li>
+<li><p>I assume “year of entry into service” corresponds to model year. This is not true for the small portion of vehicles of model year X that were were sold late in year X-1 or not sold until year X+1. A more significant bias would be introduced if (A) a large number of used cars were imported into Finland and (B) the “year of entry into service” was defined as “year of entry into service in Finland.” I assume (B) is not true.</p></li>
+</ul>
+</section>
+<section id="sec-causal-graph" class="level3" data-number="A.1.2">
+<h3 data-number="A.1.2" class="anchored" data-anchor-id="sec-causal-graph"><span class="header-section-number">A.1.2</span> Causal graph</h3>
+<p>The causal graph below represents my assumptions about which variables influence <code>failure_rate</code> and other variables. The data set does not include <span class="math inline">\(owner\_behavior\)</span> or its components <span class="math inline">\(owner\_maintenance\)</span> and <span class="math inline">\(owner\_driving\)</span>.</p>
+<div class="cell">
+<details>
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#|label: fig-causal-graph</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#|fig-cap: "Causal graph for inspection failure rate"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#|fig-height: 6</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#|fig-width: 6</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># vehicle_age is a more useful way to express model_year</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>dag1 <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">"dag {</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="st">  vehicle_age -&gt; km_driven</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="st">  vehicle_age -&gt; failure_rate </span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="st">  km_driven -&gt; failure_rate </span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="st">  owner_behavior -&gt; failure_rate </span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="st">  brand_quality -&gt; model_quality</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="st">  model_quality -&gt; failure_rate</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="st">  owner_maintenance -&gt; owner_behavior</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="st">  owner_driving -&gt; owner_behavior</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="st">  }"</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">exposures</span>(dag1) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"brand_quality"</span>, <span class="st">"model_quality"</span>, <span class="st">"vehicle_age"</span>, <span class="st">"km_driven"</span>, <span class="st">"owner_driving"</span>, <span class="st">"owner_maintenance"</span>)</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="fu">outcomes</span>(dag1) <span class="ot">&lt;-</span> <span class="st">"failure_rate"</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">latents</span>(dag1) <span class="ot">&lt;-</span> <span class="st">"owner_behavior"</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">graphLayout</span>(dag1))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="appendix-notes-data_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="576"></p>
+</div>
+</div>
+</section>
+<section id="modeling-failure-rate-and-brandmodel-quality" class="level3" data-number="A.1.3">
+<h3 data-number="A.1.3" class="anchored" data-anchor-id="modeling-failure-rate-and-brandmodel-quality"><span class="header-section-number">A.1.3</span> Modeling failure rate and brand/model quality</h3>
+<p>The <code>failure_rate</code> could be approximated as follows:</p>
+<p><span class="math display">\[failure\ rate \sim vehicle\ age + driving\ distance + brand\ quality + model\ quality\ + owner\ behavior\]</span> Given the limited data for individual vehicle models, I use <span class="math inline">\(brand\ quality\)</span>, and as a result, any variation in <span class="math inline">\(model\ quality\)</span> will show up in <span class="math inline">\(brand\ quality\)</span>.</p>
+<p><span class="math display">\[failure\ rate \sim vehicle\ age + driving\ distance + brand\ quality + owner\ behavior\]</span> The predictor <span class="math inline">\(owner\ behavior\)</span> is composed of (at least) <span class="math inline">\(owner\ maintenance\ practices\)</span> and <span class="math inline">\(owner\ driving\ behavior\)</span>. Since there is no data for <span class="math inline">\(owner\ behavior\)</span> (other than distance driven, represented separately), I assume <span class="math inline">\(owner\ behavior\)</span> is approximately constant, rendering it irrelevant to the models. This is not quite accurate, since it’s more likely that, compared to inexpensive models, expensive models will be garaged in climate-controlled conditions and maintained according to manufactures’ recommendations. Thus any variation caused by <span class="math inline">\(owner\ behavior\)</span> will show up as part of the variation in <span class="math inline">\(model\ quality\)</span> or <span class="math inline">\(brand\ quality\)</span>. Thus I removed <span class="math inline">\(owner\ behavior\)</span> from the regression specs below.</p>
+<p>Most interesting is <span class="math inline">\(brand\ quality\)</span>, which is determined pre-purchase. Can I infer something of relative <span class="math inline">\(brand\ quality\)</span> given we have only the <span class="math inline">\(failure\ rate\)</span>, <span class="math inline">\(vehicle\ age\)</span>, and <span class="math inline">\(driving\ distance\)</span>, the latter in summary statistics (median and mean) without distributions? Yes. See <a href="modeling-failure-rate.html"><span>Chapter&nbsp;3</span></a> Modeling failure rate.</p>
+<p>Note that it’s likely that information about <span class="math inline">\(brand\ quality\)</span> and <span class="math inline">\(model\ quality\)</span> is baked into the ratios of new and used model prices. It would be possible to collect prices for new and used model years and include this in the regression models. I did not do this.</p>
+<p>Given the high collinearity among<code>model_year</code> (a.k.a. <code>vehicle_age</code>), <code>median_km_driven</code>, and <code>average_km_driven</code> (<a href="brands-models.html#tbl-model-year-distance-correlations">Table&nbsp;<span>1.3</span></a>), I include only one of these in each model as the predictor. Since <code>median_km_driven</code> is more robust to outliers than <code>average_km_driven</code>, I use the medians.</p>
+<p>First I create linear models <span class="math display">\[failure\ rate \sim vehicle\ age\]</span> and <span class="math display">\[failure\ rate \sim median\ km\ driven\]</span> including all brands for which I have a minimum of 30 rows of data (<a href="modeling-failure-rate.html#tbl-simple-models-compared">Table&nbsp;<span>3.2</span></a>). <span class="math inline">\(vehicle\ age\)</span> is a reparameterization of <span class="math inline">\(model\_year\)</span>. Each row is a unique combination (<code>vehicle_age</code>, <code>brand</code>, <code>model</code>).</p>
+<p>Then I create these same linear models for each brand, subsetting the data to one brand each time (<a href="modeling-failure-rate.html#fig-relative-brand-quality-lm">Figure&nbsp;<span>3.1</span></a>).</p>
+</section>
+<section id="data-files" class="level3" data-number="A.1.4">
+<h3 data-number="A.1.4" class="anchored" data-anchor-id="data-files"><span class="header-section-number">A.1.4</span> Data files</h3>
+<ul>
+<li>Downloaded: Henkilöautojen-määräaikaiskatsastusten-vuositilasto-2022.xlsx</li>
+<li>Modified and used in this analysis: Henkilöautojen-määräaikaiskatsastusten-vuositilasto-2022-cleaned.xlsx</li>
+</ul>
+</section>
+</section>
+<section id="sec-dataset-snapshot" class="level2" data-number="A.2">
+<h2 data-number="A.2" class="anchored" data-anchor-id="sec-dataset-snapshot"><span class="header-section-number">A.2</span> Data set: Vehicles on the road as of 30 Sep 2023</h2>
+<p><a href="https://trafi2.stat.fi/PXWeb/pxweb/en/TraFi/TraFi__Liikennekaytossa_olevat_ajoneuvot/010_kanta_tau_101.px/">Passenger cars in traffic on 30 September 2023 by area</a> which provides an interesting snapshot of changing power trains in vehicles over the years.</p>
+<p>I selected “Passenger cars in traffic by Area, brand, Year of first registration and Driving power”</p>
+<p>A one-day snapshot during which data was collected introduces bias in the sample. Possible confounders include the following:</p>
+<ul>
+<li>Weather conditions</li>
+<li>Day of the week</li>
+<li>Distribution of traffic cameras or other data acquisition endpoints</li>
+<li>Accuracy of data acquisition endpoints in reading vehicle details</li>
+<li>Model-specific driving characteristics. For example, sports cars that are rarely driven are less likely to be included in the snapshot than vehicles used for commercial purposes</li>
+</ul>
+<p>I don’t have insight into these confounders; nor do I try to adjust for them.</p>
+<section id="about-the-data-1" class="level3" data-number="A.2.1">
+<h3 data-number="A.2.1" class="anchored" data-anchor-id="about-the-data-1"><span class="header-section-number">A.2.1</span> About the data</h3>
+<p>I downloaded the following data on 2023-12-18 (<a href="power-train-mix.html#tbl-sample-snapshot-data1">Table&nbsp;<span>5.1</span></a>):</p>
+<ul>
+<li>Areas include all of Finland and by area (region). I filtere districts to include only the entire Finnish mainland.</li>
+<li>Counts are by brand + power train but not model</li>
+<li>There is a total count for “passenger vehicles” as well as by brand</li>
+<li>There is an “others” category, presumably other brands</li>
+<li>There is a “Campervan” category at the end of each area, not broken out by brand (which I removed)</li>
+<li>Limited to districts; not going into more detailed municipalities.</li>
+<li>Data is in English</li>
+<li>Each row of data is a unique combination of <code>brand</code>, <code>power_train</code>, and <code>model_year</code>.</li>
+</ul>
+<p>I copied the following from the generated spreadsheet:</p>
+<pre><code>The table does not include vehicles in Åland's separate register. 
+Campervans are separated from brands and summed up. 
+The table contains 100 most common passenger car brands. 
+Rarer brands are combined to the category `other` brands.
+
+Area:
+Municipality of domicile of vehicles (area)
+
+brand:
+brand of the vehicle
+
+Year of first registration:
+Vehicles year of first registration
+
+Driving power:
+Driving power of the vehicle
+
+Latest update:
+20231009 12:00
+
+Source:
+Traficom
+
+Contact:
+Email: &lt;redacted&gt;@traficom.fi
+
+Copyright
+
+Units:
+Number of passenger cars</code></pre>
+</section>
+<section id="data-file" class="level3" data-number="A.2.2">
+<h3 data-number="A.2.2" class="anchored" data-anchor-id="data-file"><span class="header-section-number">A.2.2</span> Data file</h3>
+<ul>
+<li>Downloaded: kanta_010_20231218-231953.xlsx: 8MB file. I used only the columns of data corresponding to vehicles in model_years 2001+.</li>
+</ul>
+</section>
+</section>
+<section id="data-set-imported-used-vehicles" class="level2" data-number="A.3">
+<h2 data-number="A.3" class="anchored" data-anchor-id="data-set-imported-used-vehicles"><span class="header-section-number">A.3</span> Data set: Imported used vehicles</h2>
+<p><a href="https://trafi2.stat.fi/PXWeb/pxweb/en/TraFi/TraFi__Kaytettyna_maahantuodut/030_yksmaah_tau_103.px/">Imported used passenger cars by make, driving power and year of first registration 2014 to 2023</a></p>
+<section id="about-the-data-2" class="level3" data-number="A.3.1">
+<h3 data-number="A.3.1" class="anchored" data-anchor-id="about-the-data-2"><span class="header-section-number">A.3.1</span> About the data</h3>
+<p>I downloaded the data on 2024-01-07, which includes the following (<a href="used-vehicle-imports.html#tbl-used-vehicle-sample">Table&nbsp;<span>6.1</span></a>):</p>
+<ul>
+<li><code>brand</code>, <code>model_year</code>, <code>power_train</code>, <code>import_year</code>, and <code>n</code></li>
+<li>For Finnish mainland</li>
+<li>Imported 2014-2023</li>
+<li>Including model years 2001-2023</li>
+</ul>
+<pre><code>For the statistical reference year 2023, the table covers registrations for January to December. 
+The table does not include vehicles in Åland's separate register.
+
+Make
+
+Make of the vehicle
+Year of first registration
+
+Vehicles year of first registration
+Driving power
+
+Driving power of the vehicle
+Year
+
+Statistical year is the calendar year a set of statistics concerns</code></pre>
+<p><br></p>
+</section>
+<section id="data-file-1" class="level3" data-number="A.3.2">
+<h3 data-number="A.3.2" class="anchored" data-anchor-id="data-file-1"><span class="header-section-number">A.3.2</span> Data file</h3>
+<ul>
+<li>Downloaded: used-vehicle-imports-yksmaah_20240108-022107.xlsx. I used only the columns of data corresponding to vehicles in <code>model_year</code> 2001+.</li>
+</ul>
+<p><br></p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./used-vehicle-imports.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Used vehicle imports</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./appendix-inspection-data.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">B</span>&nbsp; <span class="chapter-title">Inspection data</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+      <div class="nav-footer-center">Copyright 2024 by <a href="https://dmoul.github.io">Daniel Moul</a>. License: <a href="http://creativecommons.org/licenses/by/4.0/">CC-BY 4.0</a></div>
+  </div>
+</footer>
+
+
+
+</body></html>
